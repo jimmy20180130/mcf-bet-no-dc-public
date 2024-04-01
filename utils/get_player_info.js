@@ -1,6 +1,3 @@
-const sqlite3 = require('sqlite3').verbose();
-const user_data = new sqlite3.Database(`${process.cwd()}/data/user_data.db`);
-
 // [{"uuid": "uuid", "playerid": "name", "time": 12345}]
 let uuids = [];
 
@@ -18,7 +15,6 @@ async function get_player_uuid(playerid) {
             .then(data => {
                 if (data && data.id) {
                     result = data.id
-                    user_data.run(`UPDATE user SET realname = ? WHERE player_uuid = ?`, [data.name, result]);
                     uuids.push({"uuid": result, "playerid": playerid, "time": Date.now()})
                 } else {
                     result = 'Not Found'
