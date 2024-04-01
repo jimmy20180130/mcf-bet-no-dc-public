@@ -5,7 +5,6 @@ const { add_bet_task, process_bet_task, add_bot } = require(`./bet/bet.js`);
 const { chat } = require(`./utils/chat.js`);
 const { start_rl, stop_rl } = require(`./utils/readline.js`);
 const { start_msg, stop_msg } = require(`./utils/chat.js`);
-const { bot_on, bot_off, bot_kicked } = require(`./discord/embed.js`);
 const { check_token } = require(`./auth/auth.js`);
 const moment = require('moment-timezone');
 
