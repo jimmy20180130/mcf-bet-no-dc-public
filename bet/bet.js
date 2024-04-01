@@ -8,7 +8,6 @@ const Vec3 = require('vec3');
 const Decimal = require('decimal.js');
 
 let bet_task = [];
-let client = undefined
 let bot = undefined
 
 async function add_bet_task(bot, player_id, amount, type) {
@@ -225,17 +224,12 @@ async function process_bet_result(bot, wool, amount, player_id, type) {
     }
 }
 
-const add_client = (dc_client) => {
-    client = dc_client;
-}
-
 const add_bot = (mc_bot) => {
     bot = mc_bot;
 }
 
 module.exports = {
     add_bet_task,
-    add_client,
     process_bet_task,
     add_bot
 };

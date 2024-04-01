@@ -16,7 +16,6 @@ const botArgs = {
     version: config.bot_args.version
 };
 
-const commands = {}
 let trade_and_lottery;
 let facility;
 let auto_warp;
@@ -25,8 +24,6 @@ let is_on_timeout;
 let add_bott;
 
 let bot;
-let client;
-let is_on = false;
 
 const init_bot = async () => {
     console.log('[INFO] 正在讓 Minecraft 機器人上線...')
@@ -35,73 +32,7 @@ const init_bot = async () => {
 
     bot.on('message', async (jsonMsg) => {
         const messages = JSON.parse(fs.readFileSync(`${process.cwd()}/config/messages.json`, 'utf-8'));
-        if (/^\[([A-Za-z0-9_]+) -> 您\] .*/.exec(jsonMsg.toString())) {
-            const msg = jsonMsg.toString()
-            const pattern = /^\[([A-Za-z0-9_]+) -> 您\] .*/;
-            const match = pattern.exec(msg);
-            if (match) {
-                let playerid = match[1];
-                if (playerid === bot.username) {return};
-                let args = msg.slice(8 + playerid.length);
-                const commandName = args.split(' ')[0].toLowerCase();
-                for (item of Object.keys(commands)) {
-                    if (commands[item].includes(commandName) || item == commandName) {
-                        if (require(`./commands/donate.js`).name == commandName || require(`./commands/donate.js`).aliases.includes(commandName) && !donate_list.includes(playerid)) {
-                            donate_list.push(playerid)
-                            await chat(bot, `/m ${playerid} ${messages.commands.donate.start_donate}`)
-                            const pay_msg_Promise = bot.awaitMessage(/^\[系統\] 您收到了/)
-                            const timeout_Promise = new Promise((resolve) => {
-                                setTimeout(() => {
-                                    resolve('timeout');
-                                }, 20000);
-                            });
-                            await Promise.race([pay_msg_Promise, timeout_Promise]).then(async string => {
-                                if (string == 'timeout' && donate_list.includes(playerid)) {
-                                    await chat(bot, `/m ${playerid} ${messages.commands.donate.donate_timeout}`)
-                                    donate_list.shift()
-                                    return
-                                } else {
-                                    const msg = string;
-                                    const e_regex = /\[系統\] 您收到了\s+(\w+)\s+轉帳的 (\d{1,3}(,\d{3})*)( 綠寶石 \(目前擁有 (\d{1,3}(,\d{3})*)) 綠寶石\)/;
-                                    const c_regex = /\[系統\] 您收到了 (\S+) 送來的 (\d{1,3}(,\d{3})*) 村民錠\. \(目前擁有 (\d{1,3}(,\d{3})*) 村民錠\)/
-                                    const ematch = e_regex.exec(msg);
-                                    const cmatch = c_regex.exec(msg);
-
-                                    if (ematch) {
-                                        let playeridd = ematch[1];
-                                        if (!donate_list.includes(playeridd)) {
-                                            await chat(bot, `/m ${playerid} ${messages.commands.donate.wait_until_no_ppl}`)
-                                            donate_list.shift()
-                                            return
-                                        } else {
-                                            let amount = parseInt(ematch[2].split(',').join(''))
-                                            if (playeridd === bot.username) {return};
-                                            await chat(bot, `/m ${playerid} ${messages.commands.donate.donate_e_success.replaceAll('%amount%', amount)}`)
-                                            donate_list.shift()
-                                        }
-                                    } else if (cmatch) {
-                                        let playeridd = cmatch[1];
-                                        if (!donate_list.includes(playeridd)) {
-                                            await chat(bot, `/m ${playerid} ${messages.commands.donate.wait_until_no_ppl}`)
-                                            donate_list.shift()
-                                            return
-                                        } else {
-                                            let amount = parseInt(cmatch[2].split(',').join(''))
-                                            if (playeridd === bot.username) {return};
-                                            await chat(bot, `/m ${playerid} ${messages.commands.donate.donate_c_success.replaceAll('%amount%', amount)}`)
-                                            donate_list.shift()
-                                        }
-                                    }
-                                }
-                            })
-                        }
-                        return
-                    }
-                }
-
-                bot.chat(`/m ${playerid} 指令不存在`);
-            }
-        } else if (jsonMsg.toString().startsWith(`[系統] 您收到了 `)) {
+        if (jsonMsg.toString().startsWith(`[系統] 您收到了 `)) {
             const msg = jsonMsg.toString();
             const e_regex = /\[系統\] 您收到了\s+(\w+)\s+轉帳的 (\d{1,3}(,\d{3})*)( 綠寶石 \(目前擁有 (\d{1,3}(,\d{3})*)) 綠寶石\)/;
             const c_regex = /\[系統\] 您收到了 (\S+) 送來的 (\d{1,3}(,\d{3})*) 村民錠\. \(目前擁有 (\d{1,3}(,\d{3})*) 村民錠\)/
@@ -120,6 +51,7 @@ const init_bot = async () => {
                     return
                 }
 
+                console.log('123')
                 await add_bet_task(bot, playerid, amount, 'emerald');
             } else if (cmatch) {
                 let playerid = cmatch[1];
@@ -196,19 +128,9 @@ const init_bot = async () => {
 
     bot.once('spawn', async () => {
         console.log('[INFO] Minecraft 機器人已上線!');
-        let botSocket = bot._client.socket;
-        let time = moment(new Date()).tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
         await new Promise(resolve => setTimeout(resolve, 10000));
+        
         try {
-            const roundedX = Math.round(bot.entity.position.x);
-            const roundedY = Math.round(bot.entity.position.y);
-            const roundedZ = Math.round(bot.entity.position.z);
-            const string = `【登入時間】${time}\n【連線位址】${botSocket.server ? botSocket.server : botSocket._host}\n【玩家名稱】${bot.username}\n【我的座標】(${roundedX}, ${roundedY}, ${roundedZ})`
-            const embed = await bot_on(string)
-            const channel = await client.channels.fetch(config.discord_channels.status);
-            await channel.send({ embeds: [embed] });
-            let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache/cache.json`, 'utf8'));
-
             process_bet_task()
 
             await chat(bot, `[${moment(new Date()).tz('Asia/Taipei').format('HH:mm:ss')}] Jimmy Bot 已上線!`)
@@ -317,13 +239,6 @@ const init_bot = async () => {
         stop_msg()
         console.log('[WARN] Minecraft 機器人被伺服器踢出了!');
         console.log(`[WARN] 原因如下: ${reason}`);
-        let time = moment(new Date()).tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
-        if (is_on == true) {
-            const string = `【踢出時間】${time}\n【踢出原因】${reason}`
-            const embed = await bot_kicked(string)
-            const channel = await client.channels.fetch(config.discord_channels.status);
-            await channel.send({ embeds: [embed] });
-        }
 
         bot.end();
     });
@@ -338,14 +253,6 @@ const init_bot = async () => {
         stop_rl()
         stop_msg()
         console.log('[WARN] Minecraft 機器人下線了!');
-        let time = moment(new Date()).tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
-        const string = `【下線時間】${time}`
-        if (is_on == true) {
-            const embed = await bot_off(string)
-            const channel = await client.channels.fetch(config.discord_channels.status);
-            await channel.send({ embeds: [embed] });
-            is_on = false;
-        }
         await new Promise(r => setTimeout(r, 5000))
         process.exit(246)
     });

@@ -1,5 +1,5 @@
 {
-    "key": "key",
+    "key": "york12345",
     "bot_args": {
         "host": "sg.mcfallout.net",
         "port": "25565",
@@ -18,7 +18,7 @@
         "cmin": 1,
         "eodds": 2,
         "codds": 1.85,
-        "bet_position": [3069, 112, 5134]
+        "bet_position": [6916, 153, -2990]
     },
     "console": {
         "mode": 1,
@@ -35,5 +35,5 @@
     "lottery_text": "",
     "facility_text": "",
     "claim_text": "",
-    "admin": []
+    "admin": ["xiaoxi_yt"]
 }
