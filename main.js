@@ -1,20 +1,11 @@
 const mineflayer = require('mineflayer');
 const fs = require('fs');
 let config = JSON.parse(fs.readFileSync(`${process.cwd()}/config/config.json`, 'utf8'));
-const { add_bet_task, add_client, process_bet_task, add_bot } = require(`./bet/bet.js`);
+const { add_bet_task, process_bet_task, add_bot } = require(`./bet/bet.js`);
 const { chat } = require(`./utils/chat.js`);
-const { get_player_uuid } = require(`./utils/get_player_info.js`);
 const { start_rl, stop_rl } = require(`./utils/readline.js`);
-const { process_msg } = require(`./utils/process_msg.js`);
-const { mc_error_handler } = require(`./error/mc_handler.js`)
 const { start_msg, stop_msg } = require(`./utils/chat.js`);
-const { add_msg, discord_console, clear_last_msg, discord_console_2 } = require(`./discord/log.js`);
-const { Client, GatewayIntentBits, Collection, Events, Partials, REST, Routes } = require('discord.js');
-const { check_codes } = require(`./utils/link_handler.js`);
-const { command_records, dc_command_records } = require(`./discord/command_record.js`);
 const { bot_on, bot_off, bot_kicked } = require(`./discord/embed.js`);
-const { get_user_data_from_dc, remove_user_role, add_user_role, getPlayerRole } = require(`./utils/database.js`);
-const { orderStrings, canUseCommand } = require(`./utils/permissions.js`);
 const { check_token } = require(`./auth/auth.js`);
 const moment = require('moment-timezone');
 
@@ -26,7 +17,6 @@ const botArgs = {
     version: config.bot_args.version
 };
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const commands = {}
 let trade_and_lottery;
 let facility;
@@ -58,7 +48,6 @@ const init_bot = async () => {
                 for (item of Object.keys(commands)) {
                     if (commands[item].includes(commandName) || item == commandName) {
                         if (require(`./commands/donate.js`).name == commandName || require(`./commands/donate.js`).aliases.includes(commandName) && !donate_list.includes(playerid)) {
-                            await command_records(client, playerid, args)
                             donate_list.push(playerid)
                             await chat(bot, `/m ${playerid} ${messages.commands.donate.start_donate}`)
                             const pay_msg_Promise = bot.awaitMessage(/^\[系統\] 您收到了/)
@@ -204,7 +193,6 @@ const init_bot = async () => {
         if (shouldSkipMessage(textMessage)) return
         
         console.log(jsonMsg.toAnsi())
-        add_msg(jsonMsg.json)
     });
 
     bot.once('spawn', async () => {
@@ -304,7 +292,6 @@ const init_bot = async () => {
 
     bot.once('login', async () => {
         start_rl(bot)
-        check_codes()
         console.log('[INFO] Minecraft 機器人已成功登入伺服器');
         await start_msg(bot)
     });
