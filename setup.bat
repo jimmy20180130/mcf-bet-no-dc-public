@@ -40,4 +40,4 @@ if exist "%~dp0\bot.zip" (
 )
 
 :: 安裝套件
-call npm i mineflayer
+call npm i decimal.js minecraft-data minecraft-protocol mineflayer prismarine-entity readline readline-sync silly-datetime moment-timezone sqlite3
